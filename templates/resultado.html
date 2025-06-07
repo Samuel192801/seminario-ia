@@ -8,53 +8,57 @@
 <body>
   <div class="document">
 
-    <!-- CAPA -->
-    <div class="page-break">
-      <h1 style="text-align:center;">{{ title }}</h1>
-      <p style="text-align:center;"><strong>Tema:</strong> {{ theme }}</p>
+    <!-- Capa -->
+    <div class="slide" style="text-align:center;">
+      <h1 style="color:#007BFF;">{{ title }}</h1>
+      <p><strong>Tema:</strong> {{ theme }}</p>
       {% if integrantes %}
-        <ul style="margin-top:40px;">
-          <strong>Integrantes:</strong>
+        <h3>Integrantes</h3>
+        <ul style="list-style:none; padding-left:0;">
           {% for nome in integrantes %}
-            <li>{{ nome }}</li>
+            <li>• {{ nome }}</li>
           {% endfor %}
         </ul>
       {% endif %}
     </div>
 
-    <!-- CONTEÚDO POR PÁGINAS -->
+    <!-- Conteúdo por aluno -->
     {% for i in range(contents|length) %}
-      <div class="page-break">
+      <div class="slide">
         <h2>{{ subtopics[i] }}</h2>
         <p>{{ contents[i].text }}</p>
-
-        <h3>Fontes Utilizadas</h3>
-        <ul>
-          {% for title, link in contents[i].references %}
-            <li><a href="{{ link }}">{{ title }}</a></li>
-          {% endfor %}
-        </ul>
 
         {% if contents[i].image %}
           <img src="{{ contents[i].image.url }}" alt="Imagem sobre {{ subtopics[i] }}">
           <p class="credit">{{ contents[i].image.credit }}</p>
         {% endif %}
+
+        <h3>Fontes Utilizadas</h3>
+        <ul class="references">
+          {% for title, link in contents[i].references %}
+            <li><a href="{{ link }}">{{ title }}</a></li>
+          {% endfor %}
+        </ul>
       </div>
     {% endfor %}
 
-    <!-- CONCLUSÃO -->
-    <div class="page-break">
+    <!-- Conclusão -->
+    <div class="slide">
       <h2>Conclusão</h2>
       <p>{{ conclusion }}</p>
     </div>
 
-    <!-- REFERÊNCIAS FINAIS -->
-    <div class="page-break">
+    <!-- Referências -->
+    <div class="slide">
       <h2>Referências Bibliográficas</h2>
       <p>{{ final_references }}</p>
     </div>
 
-    <a href="/download_pdf?html={{ request.base_url|urlencode }}" class="btn">Baixar como PDF</a>
+    <!-- Botão de download -->
+    <div style="text-align:center; margin: 40px 0;">
+      <a href="/download_pdf?html={{ request.base_url|urlencode }}" class="btn">Baixar como PDF</a>
+    </div>
+
   </div>
 </body>
 </html>
