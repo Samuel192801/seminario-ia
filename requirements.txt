@@ -1,7 +1,7 @@
 Flask
 groq
-requests
 pdfkit
 weasyprint
 jinja2
 python-dotenv
+requests
