@@ -7,21 +7,21 @@
 </head>
 <body>
   <div class="container">
-    <h1>Criar Seminário Escolar</h1>
+    <h1>Gerador de Seminários Escolares</h1>
     <form action="/" method="POST">
-      <label>Título:</label><br>
-      <input type="text" name="title" required><br><br>
+      <label>Título:</label>
+      <input type="text" name="title" required>
 
-      <label>Tema Principal:</label><br>
-      <input type="text" name="theme" required><br><br>
+      <label>Tema Principal:</label>
+      <input type="text" name="theme" required>
 
-      <label>Número de Membros:</label><br>
-      <input type="number" name="members" min="1" max="10" required><br><br>
+      <label>Número de Membros (1 a 10):</label>
+      <input type="number" name="members" min="1" max="10" required>
 
-      <label>Nomes dos Integrantes (um por linha):</label><br>
-      <textarea name="integrantes" rows="5" cols="50" placeholder="João Silva&#10;Maria Oliveira"></textarea><br><br>
+      <label>Nomes dos Integrantes (um por linha):</label>
+      <textarea name="integrantes" rows="5" placeholder="João Silva&#10;Maria Oliveira"></textarea>
 
-      <label><input type="checkbox" name="detailed"> Incluir mais detalhes nos textos</label><br><br>
+      <label><input type="checkbox" name="detailed"> Incluir mais detalhes nos textos</label>
 
       <button type="submit">Gerar Seminário</button>
     </form>
