@@ -1,15 +1,15 @@
 from flask import Flask, render_template, request, send_file
 from groq import Groq
 import os
-import requests
-from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
+import pdfkit
+import jinja2  # ✅ Import corrigido
 
 app = Flask(__name__)
-env = Environment(loader=jinja2.FileSystemLoader("templates"))
+env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))  # ✅ Uso correto
 
 # Inicializa cliente Groq
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
 
 def google_search(query):
     api_key = os.getenv("GOOGLE_API_KEY")
@@ -139,7 +139,15 @@ def index():
 @app.route("/download_pdf")
 def download_pdf():
     rendered_html = request.args.get("html")
-    pdf = HTML(string=rendered_html).write_pdf()
+    options = {
+        'page-size': 'A4',
+        'margin-top': '25mm',
+        'margin-right': '20mm',
+        'margin-bottom': '25mm',
+        'margin-left': '20mm',
+        'encoding': "UTF-8"
+    }
+    pdf = pdfkit.from_string(rendered_html, False, options=options)
     return send_file(pdf, as_attachment=True, download_name="seminario.pdf", mimetype='application/pdf')
 
 
