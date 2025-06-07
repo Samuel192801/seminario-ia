@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Criar Seminário</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div style="max-width: 600px; margin: auto; padding: 20px;">
+  <div class="container">
     <h1>Criar Seminário Escolar</h1>
     <form action="/" method="POST">
       <label>Título:</label><br>
@@ -16,6 +17,9 @@
 
       <label>Número de Membros:</label><br>
       <input type="number" name="members" min="1" max="10" required><br><br>
+
+      <label>Nomes dos Integrantes (um por linha):</label><br>
+      <textarea name="integrantes" rows="5" cols="50" placeholder="João Silva&#10;Maria Oliveira"></textarea><br><br>
 
       <button type="submit">Gerar Seminário</button>
     </form>
