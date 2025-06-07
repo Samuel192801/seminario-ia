@@ -1,44 +1,59 @@
 from flask import Flask, render_template, request, send_file
 from groq import Groq
 import os
-import pdfkit
-import jinja2
+import requests
+from jinja2 import Environment, FileSystemLoader
+from weasyprint import HTML
 
 app = Flask(__name__)
-env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
+env = Environment(loader=jinja2.FileSystemLoader("templates"))
 
 # Inicializa cliente Groq
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
+def google_search(query):
+    api_key = os.getenv("GOOGLE_API_KEY")
+    search_engine_id = os.getenv("SEARCH_ENGINE_ID")
 
-def search_and_generate(topic, detailed=False):
-    prompt = f"""
-    Você é um pesquisador experiente que está buscando informações reais sobre: {topic}.
-    
-    Passo 1: Faça uma busca fictícia na internet, usando sites confiáveis como:
-    - artigos científicos (Google Scholar)
-    - teses e dissertações
-    - livros acadêmicos
-    - instituições sérias (ex: UNESCO, Fiocruz, INEP)
+    url = "https://www.googleapis.com/customsearch/v1" 
+    params = {
+        "key": api_key,
+        "cx": search_engine_id,
+        "q": query,
+        "num": 3
+    }
 
-    Passo 2: Com base nessas fontes, escreva um trecho acadêmico com:
-    - Introdução clara
-    - Desenvolvimento objetivo
-    - Conclusão breve
-    - Duas ou três referências reais formatadas em ABNT
-    
-    Use linguagem didática, como se fosse escrito por um aluno.
-    """
-    if detailed:
-        prompt += "\nInclua mais detalhes técnicos e exemplos reais."
+    response = requests.get(url, params=params)
+    data = response.json()
 
-    response = client.chat.completions.create(
-        model="llama3-8b-8192",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=600,
-        temperature=0.7
-    )
-    return response.choices[0].message.content
+    results = []
+    if "items" in data:
+        for item in data["items"]:
+            results.append({
+                "title": item["title"],
+                "link": item["link"],
+                "snippet": item["snippet"]
+            })
+    return results
+
+
+def search_image(topic):
+    url = "https://api.unsplash.com/search/photos" 
+    headers = {
+        "Authorization": f"Client-ID {os.getenv('UNSPLASH_ACCESS_KEY')}"
+    }
+    params = {"query": topic, "orientation": "landscape", "per_page": 1}
+
+    response = requests.get(url, headers=headers, params=params)
+    data = response.json()
+
+    if data["results"]:
+        photo = data["results"][0]
+        return {
+            "url": photo["urls"]["regular"],
+            "credit": f"Foto por <a href='{photo['user']['links']['html']}'>{photo['user']['name']}</a> no Unsplash"
+        }
+    return None
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -57,34 +72,57 @@ def index():
 
         for i in range(members):
             subtopic = f"{theme} - Parte {i+1} (Aluno {i+1})"
-            content = search_and_generate(subtopic, detailed=detailed)
+            search_results = google_search(subtopic)
 
-            # Separa conteúdo e referências
-            parts = content.split("Referências:")
-            main_content = parts[0]
-            references = parts[1] if len(parts) > 1 else ""
+            context = "\n".join([f"{r['title']}: {r['snippet']} ({r['link']})" for r in search_results])
+            prompt = f"""
+            Escreva um trecho acadêmico sobre: {subtopic}
+            
+            Use as seguintes fontes:
+            {context}
+            
+            Explique o tema com suas próprias palavras.
+            Não use frases genéricas como 'claro, aqui estão as informações'.
+            Formato: Introdução, desenvolvimento, conclusão breve.
+            Tamanho: {'Detalhado' if detailed else 'Resumido'}
+            """
+
+            response = client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=600,
+                temperature=0.7
+            )
+            content = response.choices[0].message.content
+
+            image = search_image(subtopic)
 
             contents.append({
-                'text': main_content,
-                'references': references.strip()
+                "text": content,
+                "references": [(r["title"], r["link"]) for r in search_results],
+                "image": image
             })
             subtopics.append(subtopic)
 
-        conclusion = search_and_generate(f"Conclusão geral sobre {theme}")
-
-        # Gera referências finais consolidadas
-        ref_prompt = f"""
-        Com base no tema '{theme}', liste 5 referências acadêmicas reais e relevantes.
-        Use o formato ABNT e cite apenas fontes confiáveis, como artigos científicos,
-        teses, livros acadêmicos ou instituições sérias como UNESCO, Fiocruz, etc.
-        """
-        ref_response = client.chat.completions.create(
+        # Conclusão
+        conclusion_prompt = f"Escreva uma conclusão geral sobre {theme}, baseada nos tópicos acima."
+        conclusion_response = client.chat.completions.create(
             model="llama3-8b-8192",
-            messages=[{"role": "user", "content": ref_prompt}],
+            messages=[{"role": "user", "content": conclusion_prompt}],
+            max_tokens=400,
+            temperature=0.7
+        )
+        conclusion = conclusion_response.choices[0].message.content
+
+        # Referências finais
+        final_ref_prompt = f"Com base no tema '{theme}', liste 5 referências acadêmicas reais e relevantes. Use ABNT."
+        final_ref_response = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[{"role": "user", "content": final_ref_prompt}],
             max_tokens=500,
             temperature=0.7
         )
-        final_references = ref_response.choices[0].message.content
+        final_references = final_ref_response.choices[0].message.content
 
         return render_template("resultado.html",
                                title=title,
@@ -101,15 +139,7 @@ def index():
 @app.route("/download_pdf")
 def download_pdf():
     rendered_html = request.args.get("html")
-    options = {
-        'page-size': 'A4',
-        'margin-top': '25mm',
-        'margin-right': '20mm',
-        'margin-bottom': '25mm',
-        'margin-left': '20mm',
-        'encoding': "UTF-8"
-    }
-    pdf = pdfkit.from_string(rendered_html, False, options=options)
+    pdf = HTML(string=rendered_html).write_pdf()
     return send_file(pdf, as_attachment=True, download_name="seminario.pdf", mimetype='application/pdf')
 
 
