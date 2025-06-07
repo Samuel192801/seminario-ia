@@ -9,7 +9,7 @@
   <div class="document">
 
     <!-- CAPA -->
-    <div class="page">
+    <div class="page-break">
       <h1 style="text-align:center;">{{ title }}</h1>
       <p style="text-align:center;"><strong>Tema:</strong> {{ theme }}</p>
       {% if integrantes %}
@@ -23,31 +23,33 @@
     </div>
 
     <!-- CONTEÚDO POR PÁGINAS -->
-    {% for i in range(subtopics|length) %}
-      <div class="page">
+    {% for i in range(contents|length) %}
+      <div class="page-break">
         <h2>{{ subtopics[i] }}</h2>
         <p>{{ contents[i].text }}</p>
 
-        {% if contents[i].references %}
-          <h3>Referências deste tópico</h3>
-          <p>{{ contents[i].references }}</p>
-        {% endif %}
+        <h3>Fontes Utilizadas</h3>
+        <ul>
+          {% for title, link in contents[i].references %}
+            <li><a href="{{ link }}">{{ title }}</a></li>
+          {% endfor %}
+        </ul>
 
-        <p style="font-style: italic; font-size: 0.9em; color: #666;">
-          *Imagem ilustrativa (disponível em: www.exemplo.com/imagem-tema)
-        </p>
-        <img src="https://via.placeholder.com/600x200?text=Ilustrativo+-+{{ loop.index }}" style="width:100%; margin-top:20px;" />
+        {% if contents[i].image %}
+          <img src="{{ contents[i].image.url }}" alt="Imagem sobre {{ subtopics[i] }}">
+          <p class="credit">{{ contents[i].image.credit }}</p>
+        {% endif %}
       </div>
     {% endfor %}
 
     <!-- CONCLUSÃO -->
-    <div class="page">
+    <div class="page-break">
       <h2>Conclusão</h2>
       <p>{{ conclusion }}</p>
     </div>
 
     <!-- REFERÊNCIAS FINAIS -->
-    <div class="page">
+    <div class="page-break">
       <h2>Referências Bibliográficas</h2>
       <p>{{ final_references }}</p>
     </div>
