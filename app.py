@@ -7,6 +7,7 @@ import jinja2
 app = Flask(__name__)
 env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
 
+# Inicializa cliente Groq
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 
@@ -69,7 +70,7 @@ def index():
             })
             subtopics.append(subtopic)
 
-        conclusion = search_and_generate(f"Conclusão geral sobre {theme}", detailed=detailed)
+        conclusion = search_and_generate(f"Conclusão geral sobre {theme}")
 
         # Gera referências finais consolidadas
         ref_prompt = f"""
@@ -95,3 +96,24 @@ def index():
                                final_references=final_references)
 
     return render_template("index.html")
+
+
+@app.route("/download_pdf")
+def download_pdf():
+    rendered_html = request.args.get("html")
+    options = {
+        'page-size': 'A4',
+        'margin-top': '25mm',
+        'margin-right': '20mm',
+        'margin-bottom': '25mm',
+        'margin-left': '20mm',
+        'encoding': "UTF-8"
+    }
+    pdf = pdfkit.from_string(rendered_html, False, options=options)
+    return send_file(pdf, as_attachment=True, download_name="seminario.pdf", mimetype='application/pdf')
+
+
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
