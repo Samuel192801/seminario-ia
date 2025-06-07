@@ -3,7 +3,7 @@ from groq import Groq
 import os
 import pdfkit
 import jinja2
-import requests  # ✅ Import adicionado
+import requests
 
 app = Flask(__name__)
 env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
@@ -45,15 +45,17 @@ def search_image(topic):
     }
     params = {"query": topic, "orientation": "landscape", "per_page": 1}
 
-    response = requests.get(url, headers=headers, params=params)
-    data = response.json()
-
-    if data["results"]:
-        photo = data["results"][0]
-        return {
-            "url": photo["urls"]["regular"],
-            "credit": f"Foto por <a href='{photo['user']['links']['html']}'>{photo['user']['name']}</a> no Unsplash"
-        }
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        data = response.json()
+        if data["results"]:
+            photo = data["results"][0]
+            return {
+                "url": photo["urls"]["regular"],
+                "credit": f"Foto por <a href='{photo['user']['links']['html']}'>{photo['user']['name']}</a> no Unsplash"
+            }
+    except Exception as e:
+        print(f"Erro ao buscar imagem: {e}")
     return None
 
 
@@ -148,6 +150,7 @@ def download_pdf():
         'margin-left': '20mm',
         'encoding': "UTF-8"
     }
+
     try:
         pdf = pdfkit.from_string(rendered_html, False, options=options)
         return send_file(pdf, as_attachment=True, download_name="seminario.pdf", mimetype='application/pdf')
