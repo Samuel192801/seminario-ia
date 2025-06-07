@@ -19,6 +19,7 @@ def generate_content(topic):
     )
     return response.choices[0].message.content
 
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -42,11 +43,15 @@ def index():
                                conclusion=conclusion)
     return render_template("index.html")
 
+
 @app.route("/download_pdf")
 def download_pdf():
     rendered_html = request.args.get("html")
     pdf = pdfkit.from_string(rendered_html, False)
     return send_file(pdf, as_attachment=True, download_name="seminario.pdf", mimetype='application/pdf')
 
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
