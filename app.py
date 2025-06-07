@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, send_file
 from groq import Groq
 import os
-import requests
+import pdfkit
 import jinja2
-import pdfkit  # ✅ Import correto e funcional
+import requests  # ✅ Import adicionado
 
 app = Flask(__name__)
 env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
