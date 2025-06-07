@@ -6,15 +6,15 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div class="container">
+  <div class="document">
 
-    <!-- Capa -->
-    <div class="page-break">
-      <h1>{{ title }}</h1>
-      <h2>Tema: {{ theme }}</h2>
+    <!-- CAPA -->
+    <div class="page">
+      <h1 style="text-align:center;">{{ title }}</h1>
+      <p style="text-align:center;"><strong>Tema:</strong> {{ theme }}</p>
       {% if integrantes %}
-        <h3>Integrantes:</h3>
-        <ul>
+        <ul style="margin-top:40px;">
+          <strong>Integrantes:</strong>
           {% for nome in integrantes %}
             <li>{{ nome }}</li>
           {% endfor %}
@@ -22,35 +22,37 @@
       {% endif %}
     </div>
 
-    <!-- Conteúdo por aluno -->
+    <!-- CONTEÚDO POR PÁGINAS -->
     {% for i in range(subtopics|length) %}
-      <div class="page-break">
-        <h3>{{ subtopics[i] }}</h3>
-        <img src="{{ images[i] }}" alt="Imagem relacionada ao tópico" />
-        <p><small>Fonte da imagem: www.exemplo.com</small></p>
-        <p>{{ contents[i] }}</p>
+      <div class="page">
+        <h2>{{ subtopics[i] }}</h2>
+        <p>{{ contents[i].text }}</p>
+
+        {% if contents[i].references %}
+          <h3>Referências deste tópico</h3>
+          <p>{{ contents[i].references }}</p>
+        {% endif %}
+
+        <p style="font-style: italic; font-size: 0.9em; color: #666;">
+          *Imagem ilustrativa (disponível em: www.exemplo.com/imagem-tema)
+        </p>
+        <img src="https://via.placeholder.com/600x200?text=Ilustrativo+-+{{ loop.index }}" style="width:100%; margin-top:20px;" />
       </div>
     {% endfor %}
 
-    <!-- Conclusão -->
-    <div class="page-break">
-      <h3>Conclusão</h3>
+    <!-- CONCLUSÃO -->
+    <div class="page">
+      <h2>Conclusão</h2>
       <p>{{ conclusion }}</p>
     </div>
 
-    <!-- Referências -->
-    <div class="page-break">
-      <h3>Referências Bibliográficas</h3>
-      <ul>
-        <li>GOSTIN, L. O. Direitos Humanos, Saúde Pública e Direito Global. São Paulo: Editora Fiocruz, 2021.</li>
-        <li>SILVA, J. P. Impacto das redes sociais na educação. Revista Educação & Tecnologia, v. 15, n. 3, p. 45–67, 2020.</li>
-        <li>UNESCO. Educação para todos: desafios e perspectivas. Brasília: UNESCO, 2019.</li>
-      </ul>
+    <!-- REFERÊNCIAS FINAIS -->
+    <div class="page">
+      <h2>Referências Bibliográficas</h2>
+      <p>{{ final_references }}</p>
     </div>
 
-    <!-- Botão PDF -->
-    <a href="/download_pdf?html={{ rendered_html|urlencode }}" class="btn">Baixar como PDF</a>
-
+    <a href="/download_pdf?html={{ request.base_url|urlencode }}" class="btn">Baixar como PDF</a>
   </div>
 </body>
 </html>
