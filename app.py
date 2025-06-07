@@ -1,11 +1,12 @@
 from flask import Flask, render_template, request, send_file
 from groq import Groq
 import os
-import pdfkit
-import jinja2  # ✅ Import corrigido
+import requests
+import jinja2
+import pdfkit  # ✅ Import correto e funcional
 
 app = Flask(__name__)
-env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))  # ✅ Uso correto
+env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"))
 
 # Inicializa cliente Groq
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -147,8 +148,12 @@ def download_pdf():
         'margin-left': '20mm',
         'encoding': "UTF-8"
     }
-    pdf = pdfkit.from_string(rendered_html, False, options=options)
-    return send_file(pdf, as_attachment=True, download_name="seminario.pdf", mimetype='application/pdf')
+    try:
+        pdf = pdfkit.from_string(rendered_html, False, options=options)
+        return send_file(pdf, as_attachment=True, download_name="seminario.pdf", mimetype='application/pdf')
+    except Exception as e:
+        print(f"Erro ao gerar PDF: {e}")
+        return "Erro ao gerar PDF", 500
 
 
 if __name__ == "__main__":
