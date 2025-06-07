@@ -1,5 +1,6 @@
-flask
+Flask
 groq
-pdfkit
-jinja2
+requests
 weasyprint
+python-dotenv
+jinja2
